@@ -1,0 +1,340 @@
+{
+  "name": "My workflow 9",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-doc",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -32
+      ],
+      "id": "91311a4f-24de-455f-a7f3-b3bea0b4b809",
+      "name": "Webhook",
+      "webhookId": "13b69534-e6f0-41e0-b5bd-cd729d7f6101"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -112
+      ],
+      "id": "c2709e63-39df-4d81-ae5d-482d8549f0b8",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $binary.data0.fileExtension }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "298c25d8-f075-42b8-ac13-b4c6778b52dc"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c7767da8-99ab-4678-a181-759ef9f370ef",
+                    "leftValue": "={{ $binary.data0.fileExtension }}",
+                    "rightValue": "txt",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "TEXT"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "fd914def-5fbd-4fec-9405-d540370add54",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        480,
+        80
+      ],
+      "id": "5a18292e-a146-441e-8f6c-82352ac04873",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "Role: Expert Educational Content Generator. Objective: Analyze the provided text and generate a structured dataset for Quizzes and Flashcards.\n\nTask Instructions:\n\nAnalyze Content: Extract key facts and concepts from the input text.\n\nDifficulty Levels: Create exactly 5 Multiple Choice Questions (MCQs) for each level:\n\nSimple: Direct facts and definitions.\n\nIntermediate: Conceptual understanding.\n\nHard: Application and analysis.\n\nMCQ Structure: Each question must have exactly 4 options.\n\nAnswer Key: The \"correct\" field must be the 0-based index of the correct option (0, 1, 2, or 3).\n\nFlashcards: Generate 5 flashcards with \"front\" and \"back\" fields.\n\nStrict Output Requirements:\n\nReturn ONLY the raw JSON object.\n\nNO markdown code blocks (Do not use ```json or ```).\n\nNO conversational text, explanations, or greetings.\n\nNO extra characters before or after the JSON braces { }.\n\nEnsure the output starts with { and ends with }.\n\nJSON Schema Template: { \"quiz\": { \"simple\": [{\"q\": \"string\", \"options\": [\"string\", \"string\", \"string\", \"string\"], \"correct\": number}], \"intermediate\": [], \"hard\": [] }, \"flashcards\": [{\"front\": \"string\", \"back\": \"string\"}] }"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        -96
+      ],
+      "id": "e15491aa-2e52-4b61-98ca-4a19464e0c11",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        768,
+        128
+      ],
+      "id": "9cc246b3-c614-44ea-bf82-92338e6ca99d",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "sMdzfgGCanVIzd4t",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output.replace(/```json|```/g, \"\").trim() }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1056,
+        -96
+      ],
+      "id": "535dfa56-8078-492f-8434-2976f38e5bb1",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 144,
+        "width": 400,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -32,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "4c80ddb5-e4c8-424e-a37b-4aa6e375c389",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "2d09611a-aac3-4604-a10a-2820be1771b1",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "dc90bd55-a569-4ae5-8985-93d1f23805fb",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 544,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        704,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "8fe1ec8e-fdeb-47fc-b705-886d9c80526e",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 208,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        704,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "656303db-786f-4a1a-9295-d47f8dbb05c7",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c26f791d-11b4-4185-b253-46251cb40bb6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9b8e9987bcacf20e5920619fbb3822c8b7971cd039901234bd80db3190f8711d"
+  },
+  "id": "0RTqwGB4VjEaqtFB",
+  "tags": []
+}

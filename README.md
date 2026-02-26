@@ -36,7 +36,7 @@ upload any study document and get **auto-generated MCQs & quizzes**, powered by
 | Frontend | HTML, Tailwind CSS, JavaScript |
 | Automation Backend | n8n Workflow Automation |
 | Parsing / AI | LLM APIs (configurable) |
-| Deployment | Vercel / Netlify *(optional)* |
+
 
 
 
